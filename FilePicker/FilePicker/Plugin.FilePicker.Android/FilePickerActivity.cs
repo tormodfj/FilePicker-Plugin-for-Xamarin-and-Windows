@@ -1,11 +1,11 @@
 using System;
+using System.IO;
 using Android.App;
 using Android.Content;
 using Android.OS;
-using Android.Runtime;
-using System.Threading.Tasks;
-using Plugin.FilePicker.Abstractions;
 using Android.Provider;
+using Android.Runtime;
+using Plugin.FilePicker.Abstractions;
 
 namespace Plugin.FilePicker
 {
@@ -51,11 +51,18 @@ namespace Plugin.FilePicker
                     if (string.IsNullOrEmpty (filePath))
                         filePath = _uri.Path;
 
-                    var file = IOUtil.readFile (filePath);
+                    byte[] fileContent;
+
+                    using (var stream = ContentResolver.OpenInputStream(_uri))
+                    using (var memory = new MemoryStream())
+                    {
+                        stream.CopyTo(memory);
+                        fileContent = memory.ToArray();
+                    }
 
                     var fileName = GetFileName (context, _uri);
 
-                    OnFilePicked (new FilePickerEventArgs (file, fileName, filePath));
+                    OnFilePicked (new FilePickerEventArgs (fileContent, fileName, filePath));
                 } catch (Exception readEx) {
                     // Notify user file picking failed.
                     OnFilePickCancelled ();
