@@ -1,13 +1,13 @@
-using Foundation;
-using MobileCoreServices;
-using Plugin.FilePicker.Abstractions;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Foundation;
+using MobileCoreServices;
+using Plugin.FilePicker.Abstractions;
 using UIKit;
-using System.Diagnostics;
 
 namespace Plugin.FilePicker
 {
@@ -50,14 +50,12 @@ namespace Plugin.FilePicker
             System.Runtime.InteropServices.Marshal.Copy (data.Bytes, dataBytes, 0, Convert.ToInt32 (data.Length));
 
             string filename = doc.LocalizedName;
+            var pathname = doc.FileUrl?.ToString();
 
             // iCloud drive can return null for LocalizedName.
             if (filename == null) {
                 // Retrieve actual filename by taking the last entry after / in FileURL.
                 // e.g. /path/to/file.ext -> file.ext
-
-                // pathname is either a string or null.
-                var pathname = doc.FileUrl?.ToString ();
 
                 // filesplit is either:
                 // 0 (pathname is null, or last / is at position 0)
@@ -68,7 +66,7 @@ namespace Plugin.FilePicker
                 filename = pathname?.Substring (filesplit + 1);
             }
 
-            OnFilePicked (new FilePickerEventArgs (dataBytes, filename));
+            OnFilePicked (new FilePickerEventArgs (dataBytes, filename, pathname));
         }
 
         /// <summary>
@@ -138,7 +136,7 @@ namespace Plugin.FilePicker
             Handler = (s, e) => {
                 var tcs = Interlocked.Exchange (ref _completionSource, null);
 
-                tcs?.SetResult (new FileData (e.FilePath, e.FileName, () => File.OpenRead (e.FilePath)));
+                tcs?.SetResult (new FileData (e.FileByte, e.FilePath, e.FileName));
             };
 
             return _completionSource.Task;

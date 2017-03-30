@@ -56,7 +56,7 @@ namespace Plugin.FilePicker
 
                     FilePickerActivity.FilePicked -= handler;
 
-                    tcs?.SetResult (new FileData (e.FilePath, e.FileName, () => System.IO.File.OpenRead (e.FilePath)));
+                    tcs?.SetResult (new FileData (e.FileByte, e.FilePath, e.FileName));
                 };
 
                 cancelledHandler = (s, e) => {
